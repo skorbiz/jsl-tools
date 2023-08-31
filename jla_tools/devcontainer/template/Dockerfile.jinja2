@@ -1,0 +1,95 @@
+# FROM mcr.microsoft.com/devcontainers/base:jammy
+FROM ubuntu:22.04
+
+RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y --no-install-recommends \
+    bash-completion \
+    # gdb \
+    # valgrind \
+    # jsonnet \
+    # ssh \
+    wget \
+    python3 \ 
+    python3-pip \
+    # flake8 \
+    # pyyaml==5.3.1 \
+    # snooty-lextudio \
+    # esbonio \
+    sudo \
+    # bandit && \
+    docker.io \
+    git \
+    zsh \
+    && rm -rf /root/.cache/pip/*. \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY .devcontainer/assets/bazel /usr/bin/bazel
+RUN wget https://golang.org/dl/go1.17.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.17.linux-amd64.tar.gz 
+
+RUN chsh -s /usr/bin/zsh
+
+# Install oh-my-zsh
+RUN set -uex; \
+    wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh; \
+    sh ./install.sh; \
+    rm ./install.sh
+ENV ZSH_THEME agnoster
+# OBS this is not complete
+
+
+
+# Set user
+# MIR users does not follow the convention of using same uid and gid for users due to single-sign-on
+# Therefore this hack to create the group first
+RUN addgroup --quiet --gid 637800513 dev_user_group 
+
+# uid and gid mathing host user. Run 'id' in host terminal
+RUN adduser --quiet --uid 637812433 --ingroup dev_user_group --gecos "User lalaala" --shell /bin/zsh --disabled-password dev
+RUN usermod --append  --groups sudo dev
+RUN echo 'dev:Docker!' | chpasswd
+RUN echo 'root:Docker!' | chpasswd
+WORKDIR /home/dev
+
+# Intermidiate workaround to acces docker in docker
+# Propper solution is to map user id and user group 
+# to the same as host either using build_args, runtime or jinja docker files
+RUN addgroup --quiet --gid 999 dockerdev 
+RUN usermod --append  --groups dockerdev dev
+
+# Install python depencencies
+COPY jla_tools/requirements.txt .
+RUN  python3 -m pip install --ignore-installed -r requirements.txt
+
+# Install bazel using bazelisk
+RUN echo 'export PATH=/home/dev/go/bin:$PATH:/usr/local/go/bin' >> /home/dev/.bashrc
+RUN GOPATH=/home/dev/go /usr/local/go/bin/go get github.com/bazelbuild/bazelisk@v1.12.2 && \
+    GOPATH=/home/dev/go /usr/local/go/bin/go get github.com/bazelbuild/buildtools/buildifier && \
+    bazel
+COPY .devcontainer/assets/bazel-complete /etc/bash_completion.d/bazel
+
+RUN echo ' \n\
+    jla_tools="/workspaces/workspaces/jla_tools/env.sh" \n\
+    if [ -f $jla_tools ]; then \n\
+    source $jla_tools \n\
+    else \n\
+    echo "Failed to source $jla_tools" \n\
+    fi \n\
+    ' >> .bashrc
+
+# Set user and other stuff
+USER dev
+CMD [ "zsh" ]
+
+#   fonts-powerline \
+#   && locale-gen en_US.UTF-8 \
+#   # terminal colors with xterm
+#   ENV TERM xterm
+#   # set the zsh theme
+#   ENV ZSH_THEME agnoster
+
+
+
+# Add the devcontainer config
+# RUN echo "source /workspaces/mir/env.bash" >> "/home/dev/.bashrc"
+# RUN echo 'export PATH=/home/dev/go/bin:$PATH:/usr/local/go/bin' >> "/home/dev/.bashrc"
+

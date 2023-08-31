@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+# PYTHON_ARGCOMPLETE_OK
+
+from jla_tools.main import parsers
+
+
+def main():
+    parser = parsers()
+    parser.add_argument('--verbose', action="store_true", help="show verbose output - including stacktrace")
+
+    args = parser.parse_args()
+
+    print("""
+
+    Welcome to the JLA Tools CLI
+
+        """)
+
+    parser.print_usage()
+
+    return 255
+
+
+if __name__ == "__main__":
+    exit(main())
