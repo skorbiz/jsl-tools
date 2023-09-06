@@ -10,10 +10,11 @@ def main():
 
     args = parser.parse_args()
 
+    if 'func' in args:
+        return args.func(args)
+
     print("""
-
-    Welcome to the JLA Tools CLI
-
+          Welcome to the JLA Tools CLI
         """)
 
     parser.print_usage()
