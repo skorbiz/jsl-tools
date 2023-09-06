@@ -92,7 +92,10 @@ def init_developer_environment():
         out_file = os.path.join(path_out_dir, filename)
                 
         template = environment.get_template(template_file)
-        content = template.render(docker_run_args=SHARED_DOCKER_RUN_ARGS.split())
+        content = template.render(
+            docker_run_args=SHARED_DOCKER_RUN_ARGS.split(),
+            local_user_id=os.getuid(),
+            local_group_id=os.getgid())
         # args = '"'+'",\n"'.join(args)+'"'
         
         with open(out_file, mode="w", encoding="utf-8") as out:

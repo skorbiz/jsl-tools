@@ -41,10 +41,10 @@ ENV ZSH_THEME agnoster
 # Set user
 # MIR users does not follow the convention of using same uid and gid for users due to single-sign-on
 # Therefore this hack to create the group first
-RUN addgroup --quiet --gid 637800513 dev_user_group 
+RUN addgroup --quiet --gid {{local_group_id}} dev_user_group 
 
 # uid and gid mathing host user. Run 'id' in host terminal
-RUN adduser --quiet --uid 637812433 --ingroup dev_user_group --gecos "User lalaala" --shell /bin/zsh --disabled-password dev
+RUN adduser --quiet --uid {{local_user_id}} --ingroup dev_user_group --gecos "User lalaala" --shell /bin/zsh --disabled-password dev
 RUN usermod --append  --groups sudo dev
 RUN echo 'dev:Docker!' | chpasswd
 RUN echo 'root:Docker!' | chpasswd
