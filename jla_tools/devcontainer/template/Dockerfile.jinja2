@@ -7,7 +7,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -
     # valgrind \
     # jsonnet \
     # ssh \
-    wget \
     python3 \ 
     python3-pip \
     # flake8 \
@@ -18,24 +17,8 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -
     # bandit && \
     docker.io \
     git \
-    zsh \
     && rm -rf /root/.cache/pip/*. \
     && rm -rf /var/lib/apt/lists/*
-
-COPY .devcontainer/assets/bazel /usr/bin/bazel
-RUN wget https://golang.org/dl/go1.17.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.17.linux-amd64.tar.gz 
-
-RUN chsh -s /usr/bin/zsh
-
-# Install oh-my-zsh
-RUN set -uex; \
-    wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh; \
-    sh ./install.sh; \
-    rm ./install.sh
-ENV ZSH_THEME agnoster
-# OBS this is not complete
-
 
 
 # Set user
@@ -56,40 +39,43 @@ WORKDIR /home/dev
 RUN addgroup --quiet --gid 999 dockerdev 
 RUN usermod --append  --groups dockerdev dev
 
-# Install python depencencies
-COPY jla_tools/requirements.txt .
-RUN  python3 -m pip install --ignore-installed -r requirements.txt
-
-# Install bazel using bazelisk
-RUN echo 'export PATH=/home/dev/go/bin:$PATH:/usr/local/go/bin' >> /home/dev/.bashrc
-RUN GOPATH=/home/dev/go /usr/local/go/bin/go get github.com/bazelbuild/bazelisk@v1.12.2 && \
-    GOPATH=/home/dev/go /usr/local/go/bin/go get github.com/bazelbuild/buildtools/buildifier && \
-    bazel
+# Install bazel
 COPY .devcontainer/assets/bazel-complete /etc/bash_completion.d/bazel
+COPY .devcontainer/assets/bazel /usr/bin/bazel
+COPY .devcontainer/scripts/install_bazel.bash /scripts/install_bazel.bash
+RUN /scripts/install_bazel.bash
 
-RUN echo ' \n\
-    jla_tools="/workspaces/workspaces/jla_tools/env.sh" \n\
-    if [ -f $jla_tools ]; then \n\
-    source $jla_tools \n\
-    else \n\
-    echo "Failed to source $jla_tools" \n\
-    fi \n\
-    ' >> .bashrc
+# Intsall ROS2
+COPY .devcontainer/scripts/install_ros2.bash /scripts/install_ros2.bash
+RUN /scripts/install_ros2.bash
+
+# Install zsh
+COPY .devcontainer/scripts/install_zsh.bash /scripts/install_zsh.bash
+RUN /scripts/install_zsh.bash
+
+# Install jla tools
+COPY jla_tools/requirements.txt .
+RUN python3 -m pip install --ignore-installed -r requirements.txt
+RUN echo "/workspaces/workspaces/jla_tools/env.sh" >> .bashrc
+
+
 
 # Set user and other stuff
 USER dev
 CMD [ "zsh" ]
 
-#   fonts-powerline \
-#   && locale-gen en_US.UTF-8 \
-#   # terminal colors with xterm
-#   ENV TERM xterm
-#   # set the zsh theme
-#   ENV ZSH_THEME agnoster
 
 
+# # Automatically source jla tools
+# RUN echo ' \n\
+#     jla_tools="/workspaces/workspaces/jla_tools/env.sh" \n\
+#     if [ -f $jla_tools ]; then \n\
+#     source $jla_tools \n\
+#     else \n\
+#     echo "Failed to source $jla_tools" \n\
+#     fi \n\
+#     ' >> .bashrc
 
 # Add the devcontainer config
-# RUN echo "source /workspaces/mir/env.bash" >> "/home/dev/.bashrc"
 # RUN echo 'export PATH=/home/dev/go/bin:$PATH:/usr/local/go/bin' >> "/home/dev/.bashrc"
 

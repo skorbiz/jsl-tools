@@ -10,7 +10,11 @@ ROOT = os.path.expanduser("~/Dropbox/workspaces")
 
 SHARED_DOCKER_RUN_ARGS = (
            #" --privileged"
-           " -v /var/run/docker.sock:/var/run/docker.sock")
+		   # "--network=host",
+           " -v /var/run/docker.sock:/var/run/docker.sock"
+		   " -v /tmp/.X11-unix:/tmp/.X11-unix"
+           " -e DISPLAY=unix{display}"
+           ).format(display=os.environ['DISPLAY'])
 
 def attach_to_developer_container():
     import os
