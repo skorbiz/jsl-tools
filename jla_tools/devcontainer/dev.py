@@ -85,7 +85,21 @@ def backup_dir(path):
     time_string = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")   
     path_backup = path+"-backup-{}".format(time_string)
     # copy_tree(path, path_backup)
+    # os.rename(path, path_backup)
     return path_backup
+
+
+def create_tar(output_filename, source_dir):
+
+    def filter(tar_info):
+        for e in [".git", "__pycache__", ".pyc"]:
+            if e in tar_info.name:
+                return None
+        return tar_info
+
+    import tarfile
+    with tarfile.open(output_filename, "w:gz") as tar:
+        tar.add(source_dir, arcname=os.path.basename(source_dir), filter=filter)
 
 
 def init_developer_environment(args):
@@ -99,6 +113,10 @@ def init_developer_environment(args):
 
     from distutils.dir_util import copy_tree
     copy_tree(path_template_dir, path_out_dir)
+
+    path_jla_tools_tar = os.path.join(path_out_dir, "assets", "jla_tools.tar")
+    path_jla_tools = os.path.expanduser("~/Dropbox/workspaces/jla_tools")
+    create_tar(path_jla_tools_tar, path_jla_tools)
 
     environment = Environment(loader=FileSystemLoader(path_out_dir))
     for filename in ["devcontainer.json", "Dockerfile"]:

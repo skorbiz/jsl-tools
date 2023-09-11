@@ -43,8 +43,8 @@ RUN usermod --append  --groups dockerdev dev
 # Install bazel
 COPY .devcontainer/assets/bazel-complete /etc/bash_completion.d/bazel
 COPY .devcontainer/assets/bazel /usr/bin/bazel
-COPY .devcontainer/scripts/install_bazel.bash /scripts/install_bazel.bash
-RUN /scripts/install_bazel.bash
+COPY .devcontainer/scripts/install_bazel.sh /scripts/install_bazel.sh
+RUN /scripts/install_bazel.sh
 
 # Intsall ROS2
 {% if install_ros2 %}
@@ -60,10 +60,11 @@ COPY .devcontainer/scripts/install_zsh.sh /scripts/install_zsh.sh
 RUN /scripts/install_zsh.sh
 
 # Install jla tools
-# OBS todo - not entirelly settled on how to handle jla tools in the case of multiple workspaces
-# COPY jla_tools/requirements.txt .
-# RUN python3 -m pip install --ignore-installed -r requirements.txt
-RUN echo "/workspaces/workspaces/jla_tools/env.sh" >> .bashrc
+COPY .devcontainer/assets/jla_tools.tar .
+RUN tar xvzf jla_tools.tar
+RUN python3 -m pip install --ignore-installed -r jla_tools/requirements.txt
+RUN echo "jla_tools/env.sh" >> .bashrc
+#RUN echo "/workspaces/workspaces/jla_tools/env.sh" >> .bashrc
 
 # Install ROS1
 {% if install_ros1 %}
