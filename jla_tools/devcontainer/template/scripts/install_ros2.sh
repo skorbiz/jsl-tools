@@ -1,6 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
+# Check if it's Ubuntu 22.04
+ubuntu_version=$(lsb_release -r | awk '{print $2}')
+if [ "$ubuntu_version" != "22.04" ]; then
+    echo "This system is not running Ubuntu 22.04 - exiting"
+    exit -1
+fi
+
+
 # Install ROS2
 export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
@@ -18,5 +26,5 @@ apt update && sudo apt install -y --no-install-recommends \
 apt update && sudo apt install -y --no-install-recommends \
     ros-iron-desktop
 
-echo "source /opt/ros/iron/setup.bash" >> ~/.bashrc
-echo "source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash" >> ~/.bashrc
+echo "source /opt/ros/iron/setup.bash" >> /home/dev/.bashrc
+echo "source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash" >> /home/dev/.bashrc

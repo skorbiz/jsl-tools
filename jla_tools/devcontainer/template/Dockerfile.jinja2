@@ -1,22 +1,23 @@
 # FROM mcr.microsoft.com/devcontainers/base:jammy
-FROM ubuntu:22.04
+# FROM ubuntu:22.04
+FROM {{base_image}}
 
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y --no-install-recommends \
-    bash-completion \
     # gdb \
     # valgrind \
-    # jsonnet \
     # ssh \
-    python3 \ 
-    python3-pip \
     # flake8 \
     # pyyaml==5.3.1 \
-    # snooty-lextudio \
-    # esbonio \
-    sudo \
+    # bandit is a pyton security linter
     # bandit && \
+    bash-completion \
+    python3 \ 
+    python3-pip \
+    sudo \
     docker.io \
     git \
+    # lsb-core for getting the ubuntu-version in scripts
+    lsb-core \
     && rm -rf /root/.cache/pip/*. \
     && rm -rf /var/lib/apt/lists/*
 
@@ -46,36 +47,35 @@ COPY .devcontainer/scripts/install_bazel.bash /scripts/install_bazel.bash
 RUN /scripts/install_bazel.bash
 
 # Intsall ROS2
-COPY .devcontainer/scripts/install_ros2.bash /scripts/install_ros2.bash
-RUN /scripts/install_ros2.bash
+{% if install_ros2 %}
+COPY .devcontainer/scripts/install_ros2.sh /scripts/install_ros2.sh
+RUN /scripts/install_ros2.sh
+{% else %}
+# -- ROS2 not specified to be installed
+{% endif %}
+
 
 # Install zsh
-COPY .devcontainer/scripts/install_zsh.bash /scripts/install_zsh.bash
-RUN /scripts/install_zsh.bash
+COPY .devcontainer/scripts/install_zsh.sh /scripts/install_zsh.sh
+RUN /scripts/install_zsh.sh
 
 # Install jla tools
-COPY jla_tools/requirements.txt .
-RUN python3 -m pip install --ignore-installed -r requirements.txt
+# OBS todo - not entirelly settled on how to handle jla tools in the case of multiple workspaces
+# COPY jla_tools/requirements.txt .
+# RUN python3 -m pip install --ignore-installed -r requirements.txt
 RUN echo "/workspaces/workspaces/jla_tools/env.sh" >> .bashrc
+
+# Install ROS1
+{% if install_ros1 %}
+COPY .devcontainer/scripts/install_ros1_noetic.sh /scripts/install_ros1_noetic.sh
+RUN /scripts/install_ros1_noetic.sh
+{% else %}
+# -- ROS1 not specified to be installed
+{% endif %}
 
 
 
 # Set user and other stuff
 USER dev
 CMD [ "zsh" ]
-
-
-
-# # Automatically source jla tools
-# RUN echo ' \n\
-#     jla_tools="/workspaces/workspaces/jla_tools/env.sh" \n\
-#     if [ -f $jla_tools ]; then \n\
-#     source $jla_tools \n\
-#     else \n\
-#     echo "Failed to source $jla_tools" \n\
-#     fi \n\
-#     ' >> .bashrc
-
-# Add the devcontainer config
-# RUN echo 'export PATH=/home/dev/go/bin:$PATH:/usr/local/go/bin' >> "/home/dev/.bashrc"
 

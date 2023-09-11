@@ -8,15 +8,31 @@ import argparse
 
 ROOT = os.path.expanduser("~/Dropbox/workspaces")
 
+workspace_file = os.path.join(os.getcwd(), "JLA_WORKSPACE")
+if os.path.exists(workspace_file):
+    ROOT = os.path.dirname(workspace_file)
+else:
+    print("Did not find file {workspace_file}"
+        "\n Defaulting to workspace: {root}".format(workspace_file=workspace_file, root=ROOT))
+
+
 SHARED_DOCKER_RUN_ARGS = (
            #" --privileged"
 		   # "--network=host",
            " -v /var/run/docker.sock:/var/run/docker.sock"
 		   " -v /tmp/.X11-unix:/tmp/.X11-unix"
            " -e DISPLAY=unix{display}"
+            # "-v ${env:HOME}${env:USERPROFILE}/.ssh:/home/dev/.ssh-localhost:ro"
+            # "-v ${env:SSH_AUTH_SOCK}:/ssh-agent"
+            # "-e SSH_AUTH_SOCK=/ssh-agent"
+            # "-u 637812433"
+            # "--ipc=host"
+            # "-v ${env:HOME}${env:USERPROFILE}/.docker:/home/dev/.docker"
+            # "-v ${env:HOME}${env:USERPROFILE}/data:/data"
+            # "-v /tmp/coredumps:/tmp/coredumps
            ).format(display=os.environ['DISPLAY'])
 
-def attach_to_developer_container():
+def attach_to_developer_container(args):
     import os
     import subprocess
 
@@ -26,28 +42,23 @@ def attach_to_developer_container():
     os.execv("/usr/bin/docker", ["WIRED_PYTHON", "exec", "-it", container_name, "/bin/bash"])
 
 
-def build_developer_container():
+def build_developer_container(args):
     import subprocess
     tag = "my_dev_container"
     dockerfile = os.path.join(ROOT, ".devcontainer/Dockerfile")
     subprocess.check_call("docker build -f {} -t {} {source_root}".format(dockerfile, tag, source_root=ROOT).split())
 
 
-
-def run_developer_container(cmd_in=None):
+def run_developer_container(args):
     import subprocess
+    import pathlib
     args =(" --rm"
            " --name vsc-workspace-jla-tool-spawned"
            " --detach"
            " --tty"  # Allocating a tty connection prevents the container form exiting
-           " -v {source_root}:/workspaces/workspaces").format(source_root=ROOT)
+           " -v {source_root}:/workspaces/{name}").format(source_root=ROOT, name=pathlib.PurePath(ROOT).name)
     args += SHARED_DOCKER_RUN_ARGS
-
     cmd = "docker run {args} my_dev_container".format(args=args)
-    # cmd = cmd.format(uid=os.getuid())
-    if cmd_in:
-        cmd += " /bin/bash -c {}".format(cmd_in)
-
     subprocess.check_call(cmd.split())
 
 
@@ -77,7 +88,7 @@ def backup_dir(path):
     return path_backup
 
 
-def init_developer_environment():
+def init_developer_environment(args):
     from jinja2 import Environment, FileSystemLoader
     path_out_dir = os.path.join(ROOT, ".devcontainer")
     path_template_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "template")
@@ -89,7 +100,6 @@ def init_developer_environment():
     from distutils.dir_util import copy_tree
     copy_tree(path_template_dir, path_out_dir)
 
-
     environment = Environment(loader=FileSystemLoader(path_out_dir))
     for filename in ["devcontainer.json", "Dockerfile"]:
         template_file = os.path.join(filename + ".jinja2")
@@ -97,10 +107,12 @@ def init_developer_environment():
                 
         template = environment.get_template(template_file)
         content = template.render(
-            docker_run_args=SHARED_DOCKER_RUN_ARGS.split(),
-            local_user_id=os.getuid(),
-            local_group_id=os.getgid())
-        # args = '"'+'",\n"'.join(args)+'"'
+            base_image = args.base_image,
+            install_ros1 = args.with_ros1,
+            install_ros2 = not args.without_ros2,
+            docker_run_args = SHARED_DOCKER_RUN_ARGS.split(),
+            local_user_id = os.getuid(),
+            local_group_id = os.getgid())
         
         with open(out_file, mode="w", encoding="utf-8") as out:
             out.write(content)
@@ -111,25 +123,25 @@ def init_developer_environment():
     ## Todo Add user uid and gui to template files
         
 
-def developer_container(args):
-    if args.init:
-        return init_developer_environment()
-    if args.build:
-        return build_developer_container()
-    if args.run:
-        return run_developer_container()
-    return attach_to_developer_container()
-
-
 def add_parsers(parser):
-    dev_parser = parser.add_parser('dev', help='tools related to working within the development container', formatter_class=argparse.RawTextHelpFormatter)
-    dev_parser = dev_parser.add_subparsers()
+    dev_parser = parser.add_parser('devcontainer', help='tools related to working within the development container', formatter_class=argparse.RawTextHelpFormatter)
+    dev_subparser = dev_parser.add_subparsers()
+
+    init_parser = dev_subparser.add_parser("init", help="""Init setup files and configures the dev container with Jinja2.""")
+    init_parser.add_argument("--base_image", default="ubuntu:22.04", choices=('ubuntu:22.04', 'ubuntu:20.04'), help="Specify base image")
+    init_parser.add_argument("--with_ros1", action='store_true')
+    init_parser.add_argument("--without_ros2", action='store_true')
+    init_parser.set_defaults(func=init_developer_environment)
+
+    build_parser = dev_subparser.add_parser("build", help="""Builds the dev container using Docker build -- as an alternative to building/running in vs-code""")
+    build_parser.set_defaults(func=build_developer_container)
+
+    run_parser = dev_subparser.add_parser("run", help="""Runs the dev container -- as an alternative to building/running in vs-code" """)
+    run_parser.set_defaults(func=run_developer_container)
+
+    run_parser = dev_subparser.add_parser("attach", help="""Attaches to the existing dev container.""")
+    run_parser.set_defaults(func=attach_to_developer_container)
+
     
-    sub_parser = dev_parser.add_parser("container", help="""Attaches to the existing dev container.""")
-    sub_parser.add_argument('--init', action='store_true')
-    sub_parser.add_argument('--build', action='store_true')
-    sub_parser.add_argument('--run', action='store_true')
-    sub_parser.add_argument('--attach', action='store_true')
-    sub_parser.set_defaults(func=developer_container)
 
 
