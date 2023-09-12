@@ -98,7 +98,7 @@ def create_tar(output_filename, source_dir):
         return tar_info
 
     import tarfile
-    with tarfile.open(output_filename, "w:gz") as tar:
+    with tarfile.open(output_filename, "w:") as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir), filter=filter)
 
 
