@@ -14,6 +14,7 @@ export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y --
     curl \
     gpg-agent \
     gnupg \
+    build-essential \
     && rm -rf /root/.cache/pip/*. \
     && rm -rf /var/lib/apt/lists/*
 

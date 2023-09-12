@@ -40,11 +40,13 @@ WORKDIR /home/dev
 RUN addgroup --quiet --gid 999 dockerdev 
 RUN usermod --append  --groups dockerdev dev
 
+
 # Install bazel
 COPY .devcontainer/assets/bazel-complete /etc/bash_completion.d/bazel
 COPY .devcontainer/assets/bazel /usr/bin/bazel
 COPY .devcontainer/scripts/install_bazel.sh /scripts/install_bazel.sh
 RUN /scripts/install_bazel.sh
+
 
 # Intsall ROS2
 {% if install_ros2 %}
@@ -55,17 +57,6 @@ RUN /scripts/install_ros2.sh
 {% endif %}
 
 
-# Install zsh
-COPY .devcontainer/scripts/install_zsh.sh /scripts/install_zsh.sh
-RUN /scripts/install_zsh.sh
-
-# Install jla tools
-COPY .devcontainer/assets/jla_tools.tar .
-RUN tar xvzf jla_tools.tar
-RUN python3 -m pip install --ignore-installed -r jla_tools/requirements.txt
-RUN echo "jla_tools/env.sh" >> .bashrc
-#RUN echo "/workspaces/workspaces/jla_tools/env.sh" >> .bashrc
-
 # Install ROS1
 {% if install_ros1 %}
 COPY .devcontainer/scripts/install_ros1_noetic.sh /scripts/install_ros1_noetic.sh
@@ -74,6 +65,18 @@ RUN /scripts/install_ros1_noetic.sh
 # -- ROS1 not specified to be installed
 {% endif %}
 
+
+# Install zsh
+COPY .devcontainer/scripts/install_zsh.sh /scripts/install_zsh.sh
+RUN /scripts/install_zsh.sh
+
+
+# Install jla tools
+COPY .devcontainer/assets/jla_tools.tar .
+RUN tar xvf jla_tools.tar
+RUN python3 -m pip install --ignore-installed -r jla_tools/requirements.txt
+RUN echo "source jla_tools/env.sh" >> .bashrc
+#RUN echo "/workspaces/workspaces/jla_tools/env.sh" >> .bashrc
 
 
 # Set user and other stuff
