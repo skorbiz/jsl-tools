@@ -19,9 +19,6 @@ else:
 SHARED_DOCKER_RUN_ARGS = (
            #" --privileged"
 		   # "--network=host",
-           " -v /var/run/docker.sock:/var/run/docker.sock"
-		   " -v /tmp/.X11-unix:/tmp/.X11-unix"
-           " -e DISPLAY=unix{display}"
             # "-v ${env:HOME}${env:USERPROFILE}/.ssh:/home/dev/.ssh-localhost:ro"
             # "-v ${env:SSH_AUTH_SOCK}:/ssh-agent"
             # "-e SSH_AUTH_SOCK=/ssh-agent"
@@ -30,13 +27,31 @@ SHARED_DOCKER_RUN_ARGS = (
             # "-v ${env:HOME}${env:USERPROFILE}/.docker:/home/dev/.docker"
             # "-v ${env:HOME}${env:USERPROFILE}/data:/data"
             # "-v /tmp/coredumps:/tmp/coredumps
+            # // "-e",
+            # // "NVIDIA_DRIVER_CAPABILITIES=all",
+            # // "-e",
+            # // "NVIDIA-VISIBLE_DEVICES=all",
+            # // "-e",
+            # // "QT_X11_NO_MITSHM=1"
+            # // "--gpus", 
+            # // "all", 
+            # "-e", 
+            # "NVIDIA_VISIBLE_DEVICES=all", 
+            # "-e", 
+            # "NVIDIA_DRIVER_CAPABILITIES=graphics"
+            # // "-runtime", "nvidia"
+           " -v /var/run/docker.sock:/var/run/docker.sock"
+		   " -v /tmp/.X11-unix:/tmp/.X11-unix"
+           " -e DISPLAY=unix{display}"
+           # Nedded for RVIZ in ros noetic
+           " --device /dev/dri:/dev/dri"
            ).format(display=os.environ['DISPLAY'])
 
 def attach_to_developer_container(args):
     import os
     import subprocess
 
-    find_container_cmd = 'docker container ls | grep "{}" | cut -d " " -f 1 | tr -d "\n" '.format("vsc-workspace")
+    find_container_cmd = 'docker container ls | grep "{}" | cut -d " " -f 1 | tr -d "\n" '.format("vsc-")
     container_name = subprocess.check_output(find_container_cmd, shell=True).decode('utf-8')
 
     os.execv("/usr/bin/docker", ["WIRED_PYTHON", "exec", "-it", container_name, "/bin/bash"])
@@ -46,7 +61,9 @@ def build_developer_container(args):
     import subprocess
     tag = "my_dev_container"
     dockerfile = os.path.join(ROOT, ".devcontainer/Dockerfile")
-    subprocess.check_call("docker build -f {} -t {} {source_root}".format(dockerfile, tag, source_root=ROOT).split())
+    cmd = "docker build -f {} -t {} {source_root}".format(dockerfile, tag, source_root=ROOT)
+    print(cmd)
+    subprocess.check_call(cmd.split())
 
 
 def run_developer_container(args):
@@ -59,6 +76,7 @@ def run_developer_container(args):
            " -v {source_root}:/workspaces/{name}").format(source_root=ROOT, name=pathlib.PurePath(ROOT).name)
     args += SHARED_DOCKER_RUN_ARGS
     cmd = "docker run {args} my_dev_container".format(args=args)
+    print(cmd)
     subprocess.check_call(cmd.split())
 
 
@@ -161,5 +179,4 @@ def add_parsers(parser):
     run_parser.set_defaults(func=attach_to_developer_container)
 
     
-
 
