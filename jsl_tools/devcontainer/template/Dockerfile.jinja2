@@ -71,12 +71,12 @@ COPY .devcontainer/scripts/install_zsh.sh /scripts/install_zsh.sh
 RUN /scripts/install_zsh.sh
 
 
-# Install jla tools
-COPY .devcontainer/assets/jla_tools.tar .
-RUN tar xvf jla_tools.tar
-RUN python3 -m pip install --ignore-installed -r jla_tools/requirements.txt
-RUN echo "source jla_tools/env.sh" >> .bashrc
-#RUN echo "/workspaces/workspaces/jla_tools/env.sh" >> .bashrc
+# Install jsl tools
+COPY .devcontainer/assets/jsl_tools.tar .
+RUN tar xvf jsl_tools.tar
+RUN python3 -m pip install --ignore-installed -r jsl_tools/requirements.txt
+RUN echo "source jsl_tools/env.sh" >> .bashrc
+#RUN echo "/workspaces/workspaces/jsl_tools/env.sh" >> .bashrc
 
 
 # Set user and other stuff

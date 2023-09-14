@@ -8,7 +8,7 @@ import argparse
 
 ROOT = os.path.expanduser("~/Dropbox/workspaces")
 
-workspace_file = os.path.join(os.getcwd(), "JLA_WORKSPACE")
+workspace_file = os.path.join(os.getcwd(), "JSL_WORKSPACE")
 if os.path.exists(workspace_file):
     ROOT = os.path.dirname(workspace_file)
 else:
@@ -70,7 +70,7 @@ def run_developer_container(args):
     import subprocess
     import pathlib
     args =(" --rm"
-           " --name vsc-workspace-jla-tool-spawned"
+           " --name vsc-workspace-jsl-tool-spawned"
            " --detach"
            " --tty"  # Allocating a tty connection prevents the container form exiting
            " -v {source_root}:/workspaces/{name}").format(source_root=ROOT, name=pathlib.PurePath(ROOT).name)
@@ -132,9 +132,9 @@ def init_developer_environment(args):
     from distutils.dir_util import copy_tree
     copy_tree(path_template_dir, path_out_dir)
 
-    path_jla_tools_tar = os.path.join(path_out_dir, "assets", "jla_tools.tar")
-    path_jla_tools = os.path.expanduser("~/Dropbox/workspaces/jla_tools")
-    create_tar(path_jla_tools_tar, path_jla_tools)
+    path_jsl_tools_tar = os.path.join(path_out_dir, "assets", "jsl_tools.tar")
+    path_jsl_tools = os.path.expanduser("~/Dropbox/workspaces/jsl_tools")
+    create_tar(path_jsl_tools_tar, path_jsl_tools)
 
     environment = Environment(loader=FileSystemLoader(path_out_dir))
     for filename in ["devcontainer.json", "Dockerfile"]:

@@ -22,8 +22,8 @@ def start_elastic(args):
            " -p 9200:9200"
            " -p 9300:9300"
            " -e ELASTIC_PASSWORD=123456" # User elastic
-        #    " -v /home/jla/data/elastic/data:/usr/share/elasticsearch/data"
-        #    " -v /home/jla/data/elastic/config:/usr/share/elasticsearch/config"
+        #    " -v /home/jsl/data/elastic/data:/usr/share/elasticsearch/data"
+        #    " -v /home/jsl/data/elastic/config:/usr/share/elasticsearch/config"
            " -e 'discovery.type=single-node'"
            " -e 'xpack.security.enabled=false'"
            " {image}").format(image=IMAGE_ELASTIC)

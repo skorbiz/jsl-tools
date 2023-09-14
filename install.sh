@@ -12,9 +12,9 @@ fi
 # Find and goto this folder
 # ============================
 script_bash=${BASH_SOURCE[0]:-$0} 
-jla_tool_path=$(dirname "$(readlink -f "${script_bash}")") 
-pushd "${jla_tool_path}" >/dev/null || exit
-echo " # Found jla_tools at: ${jla_tool_path}"
+jsl_tool_path=$(dirname "$(readlink -f "${script_bash}")") 
+pushd "${jsl_tool_path}" >/dev/null || exit
+echo " # Found jsl_tools at: ${jsl_tool_path}"
 # BASH_SOURCE for when its defined, otherwise $0 (Which does not work with 'source' in all shells)
 
 
@@ -26,20 +26,20 @@ if ! python3 -m pip --version >/dev/null 2>&1; then
 fi
 
 if (pip -vvv freeze -r requirements.txt 2>&1 | grep "not installed") >/dev/null 2>&1; then
-    echo " # Installing python dependencies for jla_tool.."
+    echo " # Installing python dependencies for jsl_tool.."
     sudo python3 -m pip install --ignore-installed -r "requirements.txt"
 fi
 
 # Install to bashrc
 # ============================
 
-tag_begin="# JLA_TOOL_AUTOGEN_SOURCE_BEGIN ##"
-tag_end="## JLA_TOOL_AUTOGEN_SOURCE_END ##"
+tag_begin="# JSL_TOOL_AUTOGEN_SOURCE_BEGIN ##"
+tag_end="## JSL_TOOL_AUTOGEN_SOURCE_END ##"
 
 # Delete the section if it exists
 if grep -q "${tag_end}" ~/.bashrc
 then
-    echo " # Removing old jla_tools from bashrc.."
+    echo " # Removing old jsl_tools from bashrc.."
     file_name=~/.bashrc
     current_time=$(date "+%Y.%m.%d-%H.%M.%S")
     new_fileName=$file_name."bak".$current_time
@@ -49,13 +49,13 @@ then
 fi
 
 # Re-add the section
-echo " # Adding jla_tools to bashrc.."
+echo " # Adding jsl_tools to bashrc.."
 echo "
 ${tag_begin}
-  if [ -f ${jla_tool_path}/env.sh ]; then
-    source ${jla_tool_path}/env.sh
+  if [ -f ${jsl_tool_path}/env.sh ]; then
+    source ${jsl_tool_path}/env.sh
   else
-    echo 'Failed to source ${jla_tool_path}/env.sh'
+    echo 'Failed to source ${jsl_tool_path}/env.sh'
   fi
 ${tag_end}
 " >> ~/.bashrc
