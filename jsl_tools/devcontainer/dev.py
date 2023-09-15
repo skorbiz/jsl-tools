@@ -51,7 +51,7 @@ def attach_to_developer_container(args):
     import os
     import subprocess
 
-    find_container_cmd = 'docker container ls | grep "{}" | cut -d " " -f 1 | tr -d "\n" '.format("vsc-")
+    find_container_cmd = 'docker container ls | grep "{}" | cut -d " " -f 1 | tr -d "\n" '.format("vsc-workspaces")
     container_name = subprocess.check_output(find_container_cmd, shell=True).decode('utf-8')
 
     os.execv("/usr/bin/docker", ["WIRED_PYTHON", "exec", "-it", container_name, "/bin/bash"])

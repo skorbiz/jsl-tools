@@ -5,10 +5,11 @@ from jsl_tools.example.example import add_parsers as add_example_parser
 from jsl_tools.terminal_animations.terminal_animations import add_parsers as add_terminal_animation_parser
 from jsl_tools.devcontainer.dev import add_parsers as add_dev_parser
 from jsl_tools.elastic.elastic import add_parsers as add_elastic_parser
+from jsl_tools.prometheus.prometheus import add_parsers as add_prometheus_parser
 
 def parsers():
     parser = argparse.ArgumentParser(
-        description="""Jla cli tool for whatever"""
+        description="""jsl cli tool for whatever"""
     )
 
     subparsers = parser.add_subparsers(
@@ -18,6 +19,8 @@ def parsers():
     add_terminal_animation_parser(subparsers)
     add_dev_parser(subparsers)
     add_elastic_parser(subparsers)
+    add_prometheus_parser(subparsers)
+
 
     argcomplete.autocomplete(parser)
     return parser
