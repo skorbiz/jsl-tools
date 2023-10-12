@@ -11,11 +11,10 @@ fi
 
 # Find and goto this folder
 # ============================
-script_bash=${BASH_SOURCE[0]:-$0} 
+script_bash=${BASH_SOURCE[0]:-$0} # BASH_SOURCE for bash and -$0 for other shells like zsh
 jsl_tool_path=$(dirname "$(readlink -f "${script_bash}")") 
 pushd "${jsl_tool_path}" >/dev/null || exit
 echo " # Found jsl_tools at: ${jsl_tool_path}"
-# BASH_SOURCE for when its defined, otherwise $0 (Which does not work with 'source' in all shells)
 
 
 # Install pip dependencies
@@ -52,10 +51,10 @@ fi
 echo " # Adding jsl_tools to bashrc.."
 echo "
 ${tag_begin}
-  if [ -f ${jsl_tool_path}/env.sh ]; then
-    source ${jsl_tool_path}/env.sh
+  if [ -f ${jsl_tool_path}/env.bash ]; then
+    source ${jsl_tool_path}/env.bash
   else
-    echo 'Failed to source ${jsl_tool_path}/env.sh'
+    echo 'Failed to source ${jsl_tool_path}/env.bash'
   fi
 ${tag_end}
 " >> ~/.bashrc
